@@ -1,0 +1,483 @@
+{
+    "dataSources": {
+        "ds_gYCqHxoB": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<dest_ip>\\S+)\"\r\n| stats count by dest_ip\r\n| sort - count\r\n| head 10",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Top Destination Servers search"
+        },
+        "ds_8g0lpeiI": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\S+)\"\r\n| stats count by src_ip\r\n| sort - count\r\n| head 10",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Top Source Hosts search"
+        },
+        "ds_inD2jhja": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\S+)\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\S+)\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\"\r\n| bin _time span=5m\r\n| stats count by src_ip dest_ip _time\r\n| where count>5",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Beaconing search"
+        },
+        "ds_nn9wZL94": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\"\r\n| where cidrmatch(\"192.168.0.0/16\", src_ip) AND cidrmatch(\"192.168.0.0/16\", dest_ip)\r\n| stats count by src_ip dest_ip proto\r\n| where count>3",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Lateral Movement search"
+        },
+        "ds_W5lZy2rt": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\"\r\n| search proto=\"undetermined\"\r\n| stats count by src_ip dest_ip proto\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Undetermined Connections search"
+        },
+        "ds_BM560WwW": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\"\r\n| search proto=\"failure\"\r\n| stats count by src_ip dest_ip proto\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Failures search"
+        },
+        "ds_OCcWhQ7I": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\\s+(?<direction>\\S+)\\s+(?<client>\\S+)\\s+(?<server>\\S+)\"\r\n| where client!=server\r\n| stats count by src_ip dest_ip client server\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Protocol_Version Mismatch search"
+        },
+        "ds_cquodalZ": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\\s+(?<direction>\\S+)\"\r\n| where direction=\"INBOUND\"\r\n| stats count by src_ip dest_ip proto\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Inbound search"
+        },
+        "ds_F3aFnjVj": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\\s+(?<direction>\\S+)\"\r\n| where direction=\"INBOUND\"\r\n| stats count by src_ip dest_ip proto\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Inbound search"
+        },
+        "ds_m5gLKU0g": {
+            "type": "ds.search",
+            "options": {
+                "query": "index=main sourcetype=secure_logs\r\n| rex \"^(?<ts>\\d+\\.\\d+)\\s+(?<uid>\\S+)\\s+(?<src_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<src_port>\\d+)\\s+(?<dest_ip>\\d{1,3}(?:\\.\\d{1,3}){3})\\s+(?<dest_port>\\d+)\\s+(?<proto>\\S+)\\s+(?<direction>\\S+)\\s+(?<client>\\S+)\\s+(?<server>\\S+)\"\r\n| where client!=server\r\n| stats count by src_ip dest_ip client server\r\n| sort - count",
+                "queryParameters": {
+                    "earliest": "-24h@h",
+                    "latest": "now"
+                }
+            },
+            "name": "SSH Connection - Table search"
+        }
+    },
+    "visualizations": {
+        "viz_r78eJwfc": {
+            "type": "splunk.line",
+            "options": {
+                "y2": "> primary | frameBySeriesNames('')",
+                "resultLimit": 5,
+                "yAxisMin": 0,
+                "yAxisMax": 2500,
+                "yAxisLineVisibility": "show",
+                "yAxisMajorTickVisibility": "show",
+                "yAxisMinorTickVisibility": "show"
+            },
+            "dataSources": {
+                "primary": "ds_gYCqHxoB"
+            },
+            "title": "SSH Top Destination Servers",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_c6GuwRTo": {
+            "type": "splunk.pie",
+            "dataSources": {
+                "primary": "ds_8g0lpeiI"
+            },
+            "title": "SSH Top Source Hosts",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_ycY1HlVw": {
+            "type": "splunk.line",
+            "dataSources": {
+                "primary": "ds_inD2jhja"
+            },
+            "title": "SSH Beaconing",
+            "showProgressBar": false,
+            "showLastUpdated": false,
+            "options": {
+                "seriesColors": [
+                    "#7B56DB",
+                    "#00CDAF",
+                    "#DD9900",
+                    "#CB2196",
+                    "#008C80",
+                    "#FF6ACE",
+                    "#813193",
+                    "#AE8CFF",
+                    "#f8be44",
+                    "#009CEB",
+                    "#00689D",
+                    "#00490A",
+                    "#465D00",
+                    "#9D6300",
+                    "#F6540B",
+                    "#FF969E",
+                    "#E47BFE",
+                    "#FFA476"
+                ],
+                "seriesColorsByField": {
+                    "dest_ip": "#7B56DB",
+                    "count": "#FF677B"
+                },
+                "xAxisTitleText": "src_ip",
+                "x": "> primary | seriesByName('dest_ip')",
+                "y": "> primary | frameBySeriesNames('dest_ip','_time','count')",
+                "y2": "> primary | frameBySeriesNames('')",
+                "resultLimit": 5,
+                "showLineSmoothing": true,
+                "markerDisplay": "outlined",
+                "xAxisLabelVisibility": "show",
+                "yAxisTitleText": "count",
+                "yAxisLabelVisibility": "show",
+                "legendDisplay": "off"
+            }
+        },
+        "viz_DMKd8sag": {
+            "type": "splunk.sankey",
+            "options": {
+                "backgroundColor": "transparent"
+            },
+            "dataSources": {
+                "primary": "ds_nn9wZL94"
+            },
+            "title": "SSH Lateral Movement",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_12ponJjp": {
+            "type": "splunk.column",
+            "options": {
+                "resultLimit": 5,
+                "xAxisTitleText": "dest_ip",
+                "xAxisLabelVisibility": "show",
+                "yAxisTitleText": "count",
+                "yAxisLabelVisibility": "show",
+                "legendDisplay": "off"
+            },
+            "dataSources": {
+                "primary": "ds_W5lZy2rt"
+            },
+            "title": "SSH Undetermined Connections",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_b707PenB": {
+            "type": "splunk.column",
+            "options": {
+                "resultLimit": 5,
+                "dataValuesDisplay": "all",
+                "showTooltip": false,
+                "xAxisTitleText": "dest_ip",
+                "xAxisLabelVisibility": "show",
+                "yAxisTitleText": "count",
+                "yAxisLabelVisibility": "show",
+                "seriesColorsByField": {
+                    "count": "#CB2196"
+                },
+                "legendDisplay": "off"
+            },
+            "dataSources": {
+                "primary": "ds_BM560WwW"
+            },
+            "title": "SSH Failures",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_OX2UhYy1": {
+            "type": "splunk.column",
+            "dataSources": {
+                "primary": "ds_OCcWhQ7I"
+            },
+            "title": "SSH Protocol/Version Mismatch",
+            "showProgressBar": false,
+            "showLastUpdated": false,
+            "options": {
+                "xAxisTitleText": "dest_ip",
+                "xAxisLabelVisibility": "show",
+                "resultLimit": 5,
+                "xAxisMajorTickVisibility": "show",
+                "xAxisMajorTickSize": 5,
+                "yAxisTitleText": "count",
+                "yAxisMajorTickVisibility": "show",
+                "seriesColors": [
+                    "#00CDAF",
+                    "#DD9900",
+                    "#813193",
+                    "#0051B5",
+                    "#008C80",
+                    "#7B56DB",
+                    "#99B100",
+                    "#FFA476",
+                    "#009CEB",
+                    "#FF6ACE",
+                    "#AE8CFF",
+                    "#00689D",
+                    "#00490A",
+                    "#465D00",
+                    "#9D6300",
+                    "#F6540B",
+                    "#E47BFE"
+                ],
+                "legendDisplay": "off",
+                "yAxisMin": 0,
+                "yAxisMax": 3000
+            }
+        },
+        "viz_ivrdIX0C": {
+            "type": "splunk.table",
+            "options": {
+                "count": 20,
+                "dataOverlayMode": "none",
+                "drilldown": "none",
+                "showRowNumbers": false,
+                "showInternalFields": false
+            },
+            "dataSources": {
+                "primary": "ds_cquodalZ"
+            },
+            "title": "SSH Inbound"
+        },
+        "viz_R3a94kPJ": {
+            "type": "splunk.bar",
+            "options": {
+                "resultLimit": 4,
+                "yAxisLabelVisibility": "show",
+                "yAxisAbbreviation": "off",
+                "yAxisTitleText": "count",
+                "legendTruncation": "ellipsisOff",
+                "legendDisplay": "off",
+                "seriesColors": [
+                    "#009CEB",
+                    "#00CDAF",
+                    "#DD9900",
+                    "#FF677B",
+                    "#CB2196",
+                    "#813193",
+                    "#0051B5",
+                    "#008C80",
+                    "#99B100",
+                    "#FFA476",
+                    "#FF6ACE",
+                    "#AE8CFF",
+                    "#00689D",
+                    "#00490A",
+                    "#465D00",
+                    "#9D6300",
+                    "#F6540B",
+                    "#FF969E",
+                    "#E47BFE"
+                ],
+                "backgroundColor": "transparent"
+            },
+            "dataSources": {
+                "primary": "ds_F3aFnjVj"
+            },
+            "title": "SSH Inbound",
+            "showProgressBar": false,
+            "showLastUpdated": false
+        },
+        "viz_u6emKJ8D": {
+            "type": "splunk.table",
+            "options": {
+                "count": 20,
+                "dataOverlayMode": "none",
+                "drilldown": "none",
+                "showRowNumbers": false,
+                "showInternalFields": false
+            },
+            "dataSources": {
+                "primary": "ds_m5gLKU0g"
+            },
+            "title": "SSH Connection"
+        }
+    },
+    "inputs": {
+        "input_global_trp": {
+            "type": "input.timerange",
+            "options": {
+                "token": "global_time",
+                "defaultValue": "-24h@h,now"
+            },
+            "title": "Global Time Range"
+        }
+    },
+    "layout": {
+        "type": "grid",
+        "options": {
+            "width": 1440,
+            "height": 960
+        },
+        "structure": [
+            {
+                "item": "viz_r78eJwfc",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 2650,
+                    "w": 1441,
+                    "h": 700
+                }
+            },
+            {
+                "item": "viz_u6emKJ8D",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 1441,
+                    "h": 250
+                }
+            },
+            {
+                "item": "viz_R3a94kPJ",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 250,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_ivrdIX0C",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 550,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_OX2UhYy1",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 850,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_b707PenB",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 1150,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_12ponJjp",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 1450,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_DMKd8sag",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 1750,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_ycY1HlVw",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 2050,
+                    "w": 1441,
+                    "h": 300
+                }
+            },
+            {
+                "item": "viz_c6GuwRTo",
+                "type": "block",
+                "position": {
+                    "x": 0,
+                    "y": 2350,
+                    "w": 1441,
+                    "h": 300
+                }
+            }
+        ],
+        "globalInputs": [
+            "input_global_trp"
+        ]
+    },
+    "title": "SSH Threat Hunting and Detection Dashboard using Splunk",
+    "defaults": {
+        "dataSources": {
+            "ds.search": {
+                "options": {
+                    "queryParameters": {
+                        "latest": "$global_time.latest$",
+                        "earliest": "$global_time.earliest$"
+                    }
+                }
+            }
+        }
+    },
+    "description": "Built a Splunk-based security analytics dashboard to detect and analyze SSH activity (inbound attempts, failed logins, lateral movement, protocol mismatches, and possible C2 beaconing) from simulated log data (secure_logs). The project involved field extraction using rex, creating detection queries, and visualizing results in Splunk dashboards."
+}

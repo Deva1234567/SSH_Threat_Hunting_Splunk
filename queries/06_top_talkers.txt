@@ -1,0 +1,5 @@
+index=main sourcetype=secure_logs
+| rex "^(?<ts>\d+\.\d+)\s+(?<uid>\S+)\s+(?<dest_ip>\S+)"
+| stats count by dest_ip
+| sort - count
+| head 10
